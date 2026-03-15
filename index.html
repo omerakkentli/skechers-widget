@@ -83,6 +83,8 @@
             <!-- STEP 3a: Camera Flow -->
             <section class="step" id="step-camera" data-step="camera">
                 <div class="step-content camera-step">
+
+                    <!-- Phase 1: Guide -->
                     <div class="camera-phase" id="camera-phase-guide">
                         <h2 class="title">Hazırlık</h2>
                         <div class="guide-steps">
@@ -108,7 +110,7 @@
                         <button class="primary-btn" id="start-camera-btn">Kamerayı Aç</button>
                     </div>
 
-                    <!-- Camera Viewfinder -->
+                    <!-- Phase 2: Live Camera Viewfinder -->
                     <div class="camera-phase hidden" id="camera-phase-capture">
                         <div class="camera-viewfinder">
                             <video id="camera-video" autoplay playsinline></video>
@@ -117,7 +119,8 @@
                                 <div class="corner tr"></div>
                                 <div class="corner bl"></div>
                                 <div class="corner br"></div>
-                                <p class="viewfinder-hint">A4 kağıdını çerçeveye hizalayın</p>
+                                <div class="foot-guide-outline"></div>
+                                <p class="viewfinder-hint">Ayağınızı çerçevenin içine hizalayın</p>
                             </div>
                         </div>
                         <button class="capture-btn" id="capture-btn">
@@ -125,22 +128,20 @@
                         </button>
                     </div>
 
-                    <!-- Calibration: Tap A4 corners -->
-                    <div class="camera-phase hidden" id="camera-phase-calibrate">
-                        <h2 class="title">Referans Noktaları</h2>
-                        <p class="subtitle" id="calibrate-hint">A4 kağıdının 2 köşesine dokunun</p>
-                        <div class="canvas-container">
-                            <canvas id="measure-canvas"></canvas>
+                    <!-- Phase 3: Review / Retake -->
+                    <div class="camera-phase hidden" id="camera-phase-review">
+                        <h2 class="title">Fotoğrafı Kontrol Et</h2>
+                        <p class="subtitle">Ayağınız net ve tam görünüyor mu?</p>
+                        <div class="review-image-wrapper">
+                            <img id="review-image" alt="Çekilen fotoğraf">
                         </div>
-                        <div class="tap-counter">
-                            <span class="tap-dot" id="tap-1"></span>
-                            <span class="tap-dot" id="tap-2"></span>
-                            <span class="tap-dot" id="tap-3"></span>
-                            <span class="tap-dot" id="tap-4"></span>
+                        <div class="review-actions">
+                            <button class="secondary-btn" id="retake-btn">↻ Tekrar Çek</button>
+                            <button class="primary-btn" id="confirm-photo-btn">✓ Fotoğraf Uygun</button>
                         </div>
                     </div>
 
-                    <!-- Scan Animation -->
+                    <!-- Phase 4: Scan Animation -->
                     <div class="camera-phase hidden" id="camera-phase-scan">
                         <div class="scan-container">
                             <canvas id="scan-canvas"></canvas>

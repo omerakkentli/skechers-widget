@@ -4,19 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         currentStep: 'step-1',
         gender: null,
-        method: null, // 'camera' or 'manual'
+        method: null,
         footLengthMm: null,
         footWidthMm: null,
-        // Manual inputs
         currentBrand: null,
         currentSize: null,
         fitIssue: null,
-        // Shared
         activity: null,
         fitStyle: null,
-        // Camera calibration
-        calibrationPoints: [],
-        footPoints: [],
         capturedImage: null,
     };
 
@@ -32,26 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-btn');
     const footer = document.getElementById('widget-footer');
     const progressFill = document.getElementById('progress-fill');
-
-    // Step 1
     const genderCards = document.querySelectorAll('.gender-card');
-    // Step 2
     const methodCamera = document.getElementById('method-camera');
     const methodManual = document.getElementById('method-manual');
-    // Manual
     const brandSelect = document.getElementById('current-brand');
     const sizeInput = document.getElementById('current-size');
     const fitBtns = document.querySelectorAll('.fit-issue-btn');
-    // Step 4
     const activityCards = document.querySelectorAll('.activity-card');
-    // Step 5
     const fitCards = document.querySelectorAll('.fit-style-card');
 
     // ========== INIT ==========
     updateProgress();
 
-    // ========== EVENT LISTENERS ==========
-    // Gender
+    // ========== EVENTS: STEP 1 — GENDER ==========
     genderCards.forEach(c => c.addEventListener('click', () => {
         genderCards.forEach(x => x.classList.remove('selected'));
         c.classList.add('selected');
@@ -59,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enableNext();
     }));
 
-    // Method
+    // ========== EVENTS: STEP 2 — METHOD ==========
     methodCamera.addEventListener('click', () => {
         state.method = 'camera';
         goToStep('step-camera');
@@ -69,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         goToStep('step-manual');
     });
 
-    // Manual inputs
+    // ========== EVENTS: MANUAL FLOW ==========
     brandSelect.addEventListener('change', () => { state.currentBrand = brandSelect.value; validateManual(); });
     sizeInput.addEventListener('input', () => { state.currentSize = parseFloat(sizeInput.value); validateManual(); });
     sizeInput.addEventListener('focus', () => { sizeInput.placeholder = ''; });
@@ -81,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         validateManual();
     }));
 
-    // Activity
+    // ========== EVENTS: ACTIVITY ==========
     activityCards.forEach(c => c.addEventListener('click', () => {
         activityCards.forEach(x => x.classList.remove('selected'));
         c.classList.add('selected');
@@ -89,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enableNext();
     }));
 
-    // Fit Style
+    // ========== EVENTS: FIT STYLE ==========
     fitCards.forEach(c => c.addEventListener('click', () => {
         fitCards.forEach(x => x.classList.remove('selected'));
         c.classList.add('selected');
@@ -97,14 +85,14 @@ document.addEventListener('DOMContentLoaded', () => {
         enableNext();
     }));
 
-    // Navigation
+    // ========== NAVIGATION ==========
     nextBtn.addEventListener('click', () => {
         if (nextBtn.classList.contains('disabled')) return;
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
         if (idx === order.length - 1) {
             showLoading();
-        } else if (idx < order.length - 1) {
+        } else {
             goToStep(order[idx + 1]);
         }
     });
@@ -112,12 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
     backBtn.addEventListener('click', () => {
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
-        if (idx > 0) {
-            goToStep(order[idx - 1]);
-        }
+        if (idx > 0) goToStep(order[idx - 1]);
     });
 
-    // ========== NAVIGATION ==========
     function goToStep(stepId) {
         const current = document.getElementById(state.currentStep);
         const next = document.getElementById(stepId);
@@ -135,30 +120,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateNav() {
-        if (state.currentStep === 'step-1') {
-            backBtn.classList.add('hidden');
-        } else {
-            backBtn.classList.remove('hidden');
-        }
+        backBtn.classList.toggle('hidden', state.currentStep === 'step-1');
 
-        // Hide footer for camera step & method selection & loading/result
         const hideFooter = ['step-2', 'step-camera', 'step-loading', 'step-result'].includes(state.currentStep);
         footer.style.display = hideFooter ? 'none' : 'block';
 
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
-        if (idx === order.length - 1) {
-            nextBtn.textContent = 'Sonucu Göster';
-        } else {
-            nextBtn.textContent = 'Devam Et';
-        }
+        nextBtn.textContent = idx === order.length - 1 ? 'Sonucu Göster' : 'Devam Et';
     }
 
     function updateProgress() {
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
-        const pct = idx >= 0 ? ((idx + 1) / order.length) * 100 : 0;
-        progressFill.style.width = `${pct}%`;
+        progressFill.style.width = `${idx >= 0 ? ((idx + 1) / order.length) * 100 : 0}%`;
     }
 
     function enableNext() { nextBtn.classList.remove('disabled'); }
@@ -175,218 +150,147 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function validateManual() {
-        if (state.currentBrand && state.currentSize && state.fitIssue) {
-            enableNext();
-        } else {
-            disableNext();
-        }
+        (state.currentBrand && state.currentSize && state.fitIssue) ? enableNext() : disableNext();
     }
 
-    // ========== CAMERA FLOW ==========
+    // ================================================================
+    //  CAMERA FLOW — Simple: Open → Capture → Review/Retake → Scan
+    // ================================================================
     const startCameraBtn = document.getElementById('start-camera-btn');
     const captureBtn = document.getElementById('capture-btn');
+    const retakeBtn = document.getElementById('retake-btn');
+    const confirmPhotoBtn = document.getElementById('confirm-photo-btn');
     const video = document.getElementById('camera-video');
-    const measureCanvas = document.getElementById('measure-canvas');
+    const reviewImage = document.getElementById('review-image');
     const scanCanvas = document.getElementById('scan-canvas');
     let stream = null;
 
+    function showCameraPhase(phase) {
+        document.querySelectorAll('#step-camera .camera-phase').forEach(p => {
+            p.classList.add('hidden');
+            p.style.display = 'none';
+        });
+        const el = document.getElementById(`camera-phase-${phase}`);
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
+    }
+
+    // Phase 1 → Phase 2: Open camera
     startCameraBtn.addEventListener('click', async () => {
         try {
             stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
             });
             video.srcObject = stream;
+            await video.play();
             showCameraPhase('capture');
         } catch (err) {
-            // Camera not available — fall back to a simulated capture
+            console.warn('Camera not available, using simulated capture:', err);
             simulateCapture();
         }
     });
 
+    // Phase 2 → Phase 3: Capture photo
     captureBtn.addEventListener('click', () => {
-        capturePhoto();
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        state.capturedImage = canvas.toDataURL('image/jpeg', 0.85);
+
+        // Stop camera stream
+        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+
+        // Show review
+        reviewImage.src = state.capturedImage;
+        showCameraPhase('review');
     });
 
-    function showCameraPhase(phase) {
-        document.querySelectorAll('#step-camera .camera-phase').forEach(p => p.classList.add('hidden'));
-        document.getElementById(`camera-phase-${phase}`).classList.remove('hidden');
-    }
+    // Phase 3: Retake — go back to camera
+    retakeBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
+            });
+            video.srcObject = stream;
+            await video.play();
+            showCameraPhase('capture');
+        } catch (err) {
+            showCameraPhase('guide');
+        }
+    });
 
-    function capturePhoto() {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = video.videoWidth || 640;
-        tempCanvas.height = video.videoHeight || 480;
-        const ctx = tempCanvas.getContext('2d');
-        ctx.drawImage(video, 0, 0);
-        state.capturedImage = tempCanvas.toDataURL('image/jpeg');
+    // Phase 3 → Phase 4: Confirm & start scan
+    confirmPhotoBtn.addEventListener('click', () => {
+        // Generate simulated measurements (in real app this would be ML-based)
+        generateMeasurements();
+        startScanAnimation();
+    });
 
-        // Stop camera
-        if (stream) stream.getTracks().forEach(t => t.stop());
-
-        // Move to calibration
-        showCalibrationPhase();
-    }
-
+    // Desktop fallback (no camera)
     function simulateCapture() {
-        // For desktop / no camera — create a placeholder image
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 640;
-        tempCanvas.height = 480;
-        const ctx = tempCanvas.getContext('2d');
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+
+        // Dark background with foot placeholder
         ctx.fillStyle = '#1a1f2e';
         ctx.fillRect(0, 0, 640, 480);
+        // A4 paper area
         ctx.fillStyle = '#232940';
-        ctx.fillRect(120, 60, 400, 360); // A4 placeholder
-        ctx.font = '14px Inter';
-        ctx.fillStyle = '#5A6478';
+        ctx.strokeStyle = '#3D4560';
+        ctx.lineWidth = 2;
+        ctx.fillRect(140, 40, 360, 400);
+        ctx.strokeRect(140, 40, 360, 400);
+        // Foot emoji
+        ctx.font = '100px serif';
         ctx.textAlign = 'center';
-        ctx.fillText('A4 Kağıt Alanı', 320, 240);
-        // Draw a foot outline
-        ctx.font = '80px serif';
-        ctx.fillText('🦶', 300, 320);
-        state.capturedImage = tempCanvas.toDataURL('image/jpeg');
-        showCalibrationPhase();
+        ctx.fillText('🦶', 320, 300);
+        // Label
+        ctx.font = '13px Inter, sans-serif';
+        ctx.fillStyle = '#5A6478';
+        ctx.fillText('Simulated capture (desktop)', 320, 460);
+
+        state.capturedImage = canvas.toDataURL('image/jpeg');
+        reviewImage.src = state.capturedImage;
+        showCameraPhase('review');
     }
 
-    function showCalibrationPhase() {
-        showCameraPhase('calibrate');
-        const ctx = measureCanvas.getContext('2d');
-        const container = measureCanvas.parentElement;
-
-        const img = new Image();
-        img.onload = () => {
-            measureCanvas.width = container.clientWidth;
-            measureCanvas.height = container.clientHeight || 300;
-            ctx.drawImage(img, 0, 0, measureCanvas.width, measureCanvas.height);
-        };
-        img.src = state.capturedImage;
-
-        state.calibrationPoints = [];
-        state.footPoints = [];
-        updateTapDots();
-
-        const hint = document.getElementById('calibrate-hint');
-        hint.textContent = 'A4 kağıdının 2 köşesine dokunun';
-
-        measureCanvas.addEventListener('click', handleCalibrationTap);
-    }
-
-    function handleCalibrationTap(e) {
-        const rect = measureCanvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const ctx = measureCanvas.getContext('2d');
-
-        const totalPoints = state.calibrationPoints.length + state.footPoints.length;
-
-        if (state.calibrationPoints.length < 2) {
-            state.calibrationPoints.push({ x, y });
-            // Draw dot
-            ctx.beginPath();
-            ctx.arc(x, y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = '#00C9FF';
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            if (state.calibrationPoints.length === 2) {
-                // Draw line between calibration points
-                ctx.beginPath();
-                ctx.moveTo(state.calibrationPoints[0].x, state.calibrationPoints[0].y);
-                ctx.lineTo(state.calibrationPoints[1].x, state.calibrationPoints[1].y);
-                ctx.strokeStyle = '#00C9FF';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([6, 4]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                document.getElementById('calibrate-hint').textContent = 'Şimdi topuk ve en uzun parmak ucuna dokunun';
-            }
-        } else if (state.footPoints.length < 2) {
-            state.footPoints.push({ x, y });
-            // Draw dot (gold)
-            ctx.beginPath();
-            ctx.arc(x, y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = '#FBBF24';
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            if (state.footPoints.length === 2) {
-                // Draw foot line
-                ctx.beginPath();
-                ctx.moveTo(state.footPoints[0].x, state.footPoints[0].y);
-                ctx.lineTo(state.footPoints[1].x, state.footPoints[1].y);
-                ctx.strokeStyle = '#FBBF24';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([6, 4]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                measureCanvas.removeEventListener('click', handleCalibrationTap);
-                // Calculate!
-                calculateFootSize();
-            }
+    function generateMeasurements() {
+        // In a real implementation, this would use AR/ML to measure.
+        // We generate plausible values based on gender for demo purposes.
+        if (state.gender === 'female') {
+            state.footLengthMm = 235 + Math.floor(Math.random() * 20); // 235–255mm
+            state.footWidthMm = Math.round(state.footLengthMm * 0.37);
+        } else {
+            state.footLengthMm = 258 + Math.floor(Math.random() * 25); // 258–283mm
+            state.footWidthMm = Math.round(state.footLengthMm * 0.39);
         }
-
-        updateTapDots();
-    }
-
-    function updateTapDots() {
-        const total = state.calibrationPoints.length + state.footPoints.length;
-        for (let i = 1; i <= 4; i++) {
-            const dot = document.getElementById(`tap-${i}`);
-            if (i <= total) dot.classList.add('done');
-            else dot.classList.remove('done');
-        }
-    }
-
-    function calculateFootSize() {
-        // Pixel distance between A4 reference points
-        const refDist = Math.sqrt(
-            Math.pow(state.calibrationPoints[1].x - state.calibrationPoints[0].x, 2) +
-            Math.pow(state.calibrationPoints[1].y - state.calibrationPoints[0].y, 2)
-        );
-
-        // A4 long edge = 297mm, short edge = 210mm. Assume user tapped the long edge.
-        const mmPerPixel = 297 / refDist;
-
-        // Foot length in pixels
-        const footDist = Math.sqrt(
-            Math.pow(state.footPoints[1].x - state.footPoints[0].x, 2) +
-            Math.pow(state.footPoints[1].y - state.footPoints[0].y, 2)
-        );
-
-        state.footLengthMm = Math.round(footDist * mmPerPixel);
-        // Estimate width from length (typical ratio)
-        state.footWidthMm = Math.round(state.footLengthMm * 0.38);
-
-        // Show scan animation
-        setTimeout(() => startScanAnimation(), 500);
     }
 
     // ========== SCAN ANIMATION ==========
     function startScanAnimation() {
         showCameraPhase('scan');
-        const ctx = scanCanvas.getContext('2d');
+
         const container = scanCanvas.parentElement;
         scanCanvas.width = container.clientWidth;
         scanCanvas.height = container.clientHeight || 350;
+        const ctx = scanCanvas.getContext('2d');
 
-        // Draw captured image
+        // Draw captured image onto scan canvas
         const img = new Image();
         img.onload = () => {
             ctx.drawImage(img, 0, 0, scanCanvas.width, scanCanvas.height);
 
-            // Start scan line
+            // Start scan line animation
             const scanLine = document.getElementById('scan-line');
             scanLine.classList.add('active');
 
-            // Populate measurement values
-            const footLen = state.footLengthMm || 265;
-            const ballW = state.footWidthMm || Math.round(footLen * 0.38);
+            // Calculate measurement values
+            const footLen = state.footLengthMm;
+            const ballW = state.footWidthMm;
             const archW = Math.round(ballW * 0.86);
             const heelW = Math.round(ballW * 0.63);
             const toeReach = Math.round(footLen * 1.03);
@@ -397,25 +301,24 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('m-heel-val').textContent = `${heelW} mm`;
             document.getElementById('m-toe-val').textContent = `${toeReach} mm`;
 
-            // Animate labels appearing one by one
+            // Animate measurement labels appearing one by one
             const labels = document.querySelectorAll('.measure-label');
             labels.forEach((label, i) => {
-                setTimeout(() => {
-                    label.classList.add('visible');
-                }, 800 + i * 500);
+                setTimeout(() => label.classList.add('visible'), 800 + i * 500);
             });
 
-            // Update status text
+            // Update status text progressively
             const statusEl = document.getElementById('scan-status');
             setTimeout(() => { statusEl.textContent = 'Taban genişliği hesaplanıyor...'; }, 1000);
-            setTimeout(() => { statusEl.textContent = 'Kemer ölçüsü alınıyor...'; }, 2000);
-            setTimeout(() => { statusEl.textContent = 'Analiz tamamlandı ✓'; }, 3500);
+            setTimeout(() => { statusEl.textContent = 'Kemer ve topuk analiz ediliyor...'; }, 2000);
+            setTimeout(() => { statusEl.textContent = 'Parmak erişimi ölçülüyor...'; }, 3000);
+            setTimeout(() => { statusEl.textContent = 'Analiz tamamlandı ✓'; statusEl.style.color = '#34D399'; }, 4000);
 
-            // After animation, proceed to activity step
+            // After animation completes, move to activity selection
             setTimeout(() => {
                 goToStep('step-4');
                 footer.style.display = 'block';
-            }, 4500);
+            }, 5000);
         };
         img.src = state.capturedImage;
     }
@@ -423,19 +326,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== LOADING & RESULT ==========
     function showLoading() {
         goToStep('step-loading');
-        setTimeout(() => {
-            document.getElementById('loading-text').textContent = 'Skechers veritabanı taranıyor...';
-        }, 800);
-        setTimeout(() => {
-            document.getElementById('loading-text').textContent = 'Kalıp eşleştiriliyor...';
-        }, 1600);
-        setTimeout(() => {
-            computeResult();
-        }, 2400);
+        setTimeout(() => { document.getElementById('loading-text').textContent = 'Skechers veritabanı taranıyor...'; }, 800);
+        setTimeout(() => { document.getElementById('loading-text').textContent = 'Kalıp eşleştiriliyor...'; }, 1600);
+        setTimeout(() => computeResult(), 2400);
     }
 
-    // ========== SIZING TABLES ==========
-    // EU size → foot length in mm
+    // ========== SIZING TABLE ==========
     const SIZE_TABLE = [
         { eu: 35, mm: 220, usM: 3.5, usW: 5.5, uk: 2.5 },
         { eu: 36, mm: 225, usM: 4, usW: 6, uk: 3.5 },
@@ -453,104 +349,58 @@ document.addEventListener('DOMContentLoaded', () => {
         { eu: 47, mm: 307, usM: 13, usW: null, uk: 12.5 },
     ];
 
-    // Brand sizing offset (positive = brand runs large, so Skechers size should be smaller)
     const BRAND_OFFSET = {
-        nike: 0,
-        adidas: 0,
-        skechers: 0,
-        new_balance: -0.5,
-        puma: 0,
-        converse: 0.5,  // Converse runs large
-        vans: 0,
-        other: 0
+        nike: 0, adidas: 0, skechers: 0, new_balance: -0.5,
+        puma: 0, converse: 0.5, vans: 0, other: 0
     };
 
     function findSizeFromMm(mm) {
-        let best = SIZE_TABLE[0];
-        let minDiff = Infinity;
-        for (const entry of SIZE_TABLE) {
-            const diff = Math.abs(entry.mm - mm);
-            if (diff < minDiff) {
-                minDiff = diff;
-                best = entry;
-            }
-        }
-        return best;
+        return SIZE_TABLE.reduce((best, e) => Math.abs(e.mm - mm) < Math.abs(best.mm - mm) ? e : best);
     }
 
     function findSizeFromEu(eu) {
-        let best = SIZE_TABLE[0];
-        let minDiff = Infinity;
-        for (const entry of SIZE_TABLE) {
-            const diff = Math.abs(entry.eu - eu);
-            if (diff < minDiff) {
-                minDiff = diff;
-                best = entry;
-            }
-        }
-        return best;
+        return SIZE_TABLE.reduce((best, e) => Math.abs(e.eu - eu) < Math.abs(best.eu - eu) ? e : best);
     }
 
     function computeResult() {
         let sizeEntry;
 
         if (state.method === 'camera' && state.footLengthMm) {
-            // Camera path: use measured foot length
-            // Add ~5-10mm for comfort (shoes should be slightly longer than foot)
-            let adjustedMm = state.footLengthMm + 7;
-            sizeEntry = findSizeFromMm(adjustedMm);
+            // Camera: foot length + comfort margin
+            sizeEntry = findSizeFromMm(state.footLengthMm + 7);
         } else {
-            // Manual path: use current size + brand offset
+            // Manual: current size adjusted for brand + fit
             let adjustedEu = state.currentSize;
-
-            // Apply brand conversion
-            const offset = BRAND_OFFSET[state.currentBrand] || 0;
-            adjustedEu += offset;
-
-            // Apply fit issue adjustment
+            adjustedEu += (BRAND_OFFSET[state.currentBrand] || 0);
             if (state.fitIssue === 'tight') adjustedEu += 0.5;
             if (state.fitIssue === 'loose') adjustedEu -= 0.5;
-
             sizeEntry = findSizeFromEu(adjustedEu);
         }
 
-        // Activity-based tip adjustment
-        let activityTip = '';
-        if (state.activity === 'running') {
-            activityTip = 'Koşu ayakkabılarında yarım numara büyük tercih etmenizi öneririz.';
-            // For running, suggest half size up
-        } else if (state.activity === 'walking') {
-            activityTip = 'Yürüyüş için tam bedeniniz idealdir; comfort teknolojili modellere bakın.';
-        } else if (state.activity === 'training') {
-            activityTip = 'Salon antrenmanlarında ayağı saran, destekli bir kalıp performansınızı artırır.';
-        } else {
-            activityTip = 'Günlük kullanımda biraz daha ferah bir kalıp tüm gün konfor sağlar.';
-        }
-
-        // Fit style recommendation
-        const fitNames = {
-            classic: 'Classic Fit',
-            relaxed: 'Relaxed Fit',
-            wide: 'Wide Fit',
-            extra_wide: 'Extra Wide Fit'
+        // Activity tip
+        const activityTips = {
+            running: 'Koşu ayakkabılarında yarım numara büyük tercih etmenizi öneririz.',
+            walking: 'Yürüyüş için tam bedeniniz idealdir; comfort teknolojili modellere bakın.',
+            training: 'Salon antrenmanlarında ayağı saran, destekli bir kalıp performansınızı artırır.',
+            casual: 'Günlük kullanımda biraz daha ferah bir kalıp tüm gün konfor sağlar.'
         };
-        const fitName = fitNames[state.fitStyle] || 'Relaxed Fit';
 
-        // Width tags
+        // Fit style
+        const fitNames = { classic: 'Classic Fit', relaxed: 'Relaxed Fit', wide: 'Wide Fit', extra_wide: 'Extra Wide Fit' };
         const widthInfo = {
             classic: { men: 'D Width', women: 'B Width' },
             relaxed: { men: '1E Width', women: 'C Width' },
             wide: { men: '2E Width', women: '1E Width' },
             extra_wide: { men: '4E Width', women: '2E Width' }
         };
+
+        const fitName = fitNames[state.fitStyle] || 'Relaxed Fit';
         const wInfo = widthInfo[state.fitStyle] || widthInfo.relaxed;
         const genderWidth = state.gender === 'female' ? wInfo.women : wInfo.men;
 
         // Populate result
         document.getElementById('final-size').textContent = sizeEntry.eu;
-        document.getElementById('size-us').textContent = state.gender === 'female'
-            ? (sizeEntry.usW || '—')
-            : sizeEntry.usM;
+        document.getElementById('size-us').textContent = state.gender === 'female' ? (sizeEntry.usW || '—') : sizeEntry.usM;
         document.getElementById('size-uk').textContent = sizeEntry.uk;
         document.getElementById('size-cm').textContent = (sizeEntry.mm / 10).toFixed(1);
         document.getElementById('result-fit-name').textContent = `${fitName} (${genderWidth})`;
@@ -559,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('result-justification').textContent =
             `${method.charAt(0).toUpperCase() + method.slice(1)} ve ${fitName} tercihiniz göz önüne alındığında, Skechers ${sizeEntry.eu} numara size en iyi uyumu sağlayacaktır.`;
 
-        document.getElementById('tip-1').textContent = activityTip;
+        document.getElementById('tip-1').textContent = activityTips[state.activity] || activityTips.casual;
         document.getElementById('tip-2').textContent = 'Akşam saatlerinde denemenizi öneririz — ayak gün boyunca hafif şişer.';
 
         goToStep('step-result');
