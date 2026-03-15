@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Skechers Fit Finder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="widget-wrapper">
+    <div class="skechers-widget">
+
+        <!-- HEADER -->
+        <header class="widget-header">
+            <button class="icon-btn back-btn hidden" id="back-btn" aria-label="Geri">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <button class="icon-btn close-btn" aria-label="Kapat">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </header>
+
+        <!-- STEPS -->
+        <main class="steps-container" id="steps-container">
+
+            <!-- STEP 1: Welcome & Gender -->
+            <section class="step active" id="step-1" data-step="1">
+                <div class="step-content centered">
+                    <div class="brand-logo">
+                        <svg viewBox="0 0 200 40" fill="currentColor" class="skechers-logo-svg">
+                            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter" font-weight="900" font-size="32" letter-spacing="3">SKECHERS</text>
+                        </svg>
+                    </div>
+                    <h1 class="hero-title">Mükemmel Bedenini<br><span class="accent-text">Keşfet</span></h1>
+                    <p class="hero-sub">Telefonunun kamerasıyla veya birkaç soruyla ideal ayakkabı bedeninizi bulalım.</p>
+
+                    <div class="gender-row">
+                        <button class="gender-card" data-value="male">
+                            <span class="gender-icon">👟</span>
+                            <span>Erkek</span>
+                        </button>
+                        <button class="gender-card" data-value="female">
+                            <span class="gender-icon">👠</span>
+                            <span>Kadın</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 2: Method Selection -->
+            <section class="step" id="step-2" data-step="2">
+                <div class="step-content centered">
+                    <h2 class="title">Nasıl Ölçelim?</h2>
+                    <p class="subtitle">En doğru sonuç için kamera taramasını öneriyoruz.</p>
+
+                    <div class="method-cards">
+                        <button class="method-card camera-card" id="method-camera">
+                            <div class="method-icon-wrap pulse-ring">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                            <h3>📸 Kamera ile Tara</h3>
+                            <p>Ayağını A4 kağıdın üzerine koy, kamerayla tara</p>
+                            <span class="method-badge">ÖNERİLEN</span>
+                        </button>
+                        <button class="method-card" id="method-manual">
+                            <div class="method-icon-wrap">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            </div>
+                            <h3>📝 Manuel Giriş</h3>
+                            <p>Mevcut ayakkabı bedenini ve markayı gir</p>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 3a: Camera Flow -->
+            <section class="step" id="step-camera" data-step="camera">
+                <div class="step-content camera-step">
+                    <div class="camera-phase" id="camera-phase-guide">
+                        <h2 class="title">Hazırlık</h2>
+                        <div class="guide-steps">
+                            <div class="guide-item">
+                                <span class="guide-num">1</span>
+                                <p>Bir A4 kağıdı düz bir zemine yerleştirin</p>
+                            </div>
+                            <div class="guide-item">
+                                <span class="guide-num">2</span>
+                                <p>Çıplak ayağınızı kağıdın üzerine basın</p>
+                            </div>
+                            <div class="guide-item">
+                                <span class="guide-num">3</span>
+                                <p>Telefonunuzu yukarıdan tutarak fotoğraf çekin</p>
+                            </div>
+                        </div>
+                        <div class="a4-preview">
+                            <div class="a4-paper-icon">
+                                <span class="a4-label">A4</span>
+                                <div class="foot-silhouette">🦶</div>
+                            </div>
+                        </div>
+                        <button class="primary-btn" id="start-camera-btn">Kamerayı Aç</button>
+                    </div>
+
+                    <!-- Camera Viewfinder -->
+                    <div class="camera-phase hidden" id="camera-phase-capture">
+                        <div class="camera-viewfinder">
+                            <video id="camera-video" autoplay playsinline></video>
+                            <div class="viewfinder-overlay">
+                                <div class="corner tl"></div>
+                                <div class="corner tr"></div>
+                                <div class="corner bl"></div>
+                                <div class="corner br"></div>
+                                <p class="viewfinder-hint">A4 kağıdını çerçeveye hizalayın</p>
+                            </div>
+                        </div>
+                        <button class="capture-btn" id="capture-btn">
+                            <div class="capture-ring"></div>
+                        </button>
+                    </div>
+
+                    <!-- Calibration: Tap A4 corners -->
+                    <div class="camera-phase hidden" id="camera-phase-calibrate">
+                        <h2 class="title">Referans Noktaları</h2>
+                        <p class="subtitle" id="calibrate-hint">A4 kağıdının 2 köşesine dokunun</p>
+                        <div class="canvas-container">
+                            <canvas id="measure-canvas"></canvas>
+                        </div>
+                        <div class="tap-counter">
+                            <span class="tap-dot" id="tap-1"></span>
+                            <span class="tap-dot" id="tap-2"></span>
+                            <span class="tap-dot" id="tap-3"></span>
+                            <span class="tap-dot" id="tap-4"></span>
+                        </div>
+                    </div>
+
+                    <!-- Scan Animation -->
+                    <div class="camera-phase hidden" id="camera-phase-scan">
+                        <div class="scan-container">
+                            <canvas id="scan-canvas"></canvas>
+                            <div class="scan-line" id="scan-line"></div>
+                            <div class="measurements-overlay" id="measurements-overlay">
+                                <div class="measure-label m-length" data-delay="0">
+                                    <span class="m-line h"></span>
+                                    <span class="m-tag">Ayak Uzunluğu<br><strong id="m-length-val">265 mm</strong></span>
+                                </div>
+                                <div class="measure-label m-ball" data-delay="1">
+                                    <span class="m-line v"></span>
+                                    <span class="m-tag">Taban Genişliği<br><strong id="m-ball-val">98 mm</strong></span>
+                                </div>
+                                <div class="measure-label m-arch" data-delay="2">
+                                    <span class="m-line v"></span>
+                                    <span class="m-tag">Kemer Genişliği<br><strong id="m-arch-val">84 mm</strong></span>
+                                </div>
+                                <div class="measure-label m-heel" data-delay="3">
+                                    <span class="m-line v"></span>
+                                    <span class="m-tag">Topuk Genişliği<br><strong id="m-heel-val">62 mm</strong></span>
+                                </div>
+                                <div class="measure-label m-toe" data-delay="4">
+                                    <span class="m-line d"></span>
+                                    <span class="m-tag">Parmak Erişimi<br><strong id="m-toe-val">272 mm</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="scan-status" id="scan-status">Taranıyor...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 3b: Manual Flow -->
+            <section class="step" id="step-manual" data-step="manual">
+                <div class="step-content">
+                    <h2 class="title">Mevcut Ayakkabınız</h2>
+                    <p class="subtitle">Şu an en rahat giydiğiniz ayakkabının bilgilerini girin.</p>
+
+                    <div class="input-group">
+                        <label for="current-brand">Marka</label>
+                        <select id="current-brand">
+                            <option value="">Seçin...</option>
+                            <option value="nike">Nike</option>
+                            <option value="adidas">Adidas</option>
+                            <option value="skechers">Skechers</option>
+                            <option value="new_balance">New Balance</option>
+                            <option value="puma">Puma</option>
+                            <option value="converse">Converse</option>
+                            <option value="vans">Vans</option>
+                            <option value="other">Diğer</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="current-size">Numara (EU)</label>
+                        <div class="number-input-wrapper">
+                            <input type="number" id="current-size" placeholder="Örn: 42" min="35" max="48" step="0.5">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Mevcut ayakkabınız nasıl oturuyor?</label>
+                        <div class="fit-pills">
+                            <button class="pill-btn fit-issue-btn" data-value="tight">Sıkıyor</button>
+                            <button class="pill-btn fit-issue-btn" data-value="perfect">Tam</button>
+                            <button class="pill-btn fit-issue-btn" data-value="loose">Bol</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 4: Activity -->
+            <section class="step" id="step-4" data-step="4">
+                <div class="step-content">
+                    <h2 class="title">Kullanım Amacı</h2>
+                    <p class="subtitle">Bu ayakkabıyı en çok nerede giyeceksiniz?</p>
+
+                    <div class="activity-grid">
+                        <button class="activity-card" data-value="running">
+                            <span class="activity-emoji">🏃</span>
+                            <h4>Koşu</h4>
+                            <p>Yol ve parkur koşusu</p>
+                        </button>
+                        <button class="activity-card" data-value="walking">
+                            <span class="activity-emoji">🚶</span>
+                            <h4>Yürüyüş</h4>
+                            <p>Günlük yürüyüş ve gezi</p>
+                        </button>
+                        <button class="activity-card" data-value="training">
+                            <span class="activity-emoji">🏋️</span>
+                            <h4>Antrenman</h4>
+                            <p>Salon ve fitness</p>
+                        </button>
+                        <button class="activity-card" data-value="casual">
+                            <span class="activity-emoji">😎</span>
+                            <h4>Günlük</h4>
+                            <p>Ofis ve sosyal hayat</p>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STEP 5: Fit Style (4 Skechers options) -->
+            <section class="step" id="step-5" data-step="5">
+                <div class="step-content">
+                    <h2 class="title">Kalıp Tercihiniz</h2>
+                    <p class="subtitle">Ayakkabınızın ayağınıza nasıl oturmasını tercih edersiniz?</p>
+
+                    <div class="fit-style-grid">
+                        <button class="fit-style-card" data-value="classic">
+                            <div class="fit-img-wrap">
+                                <img src="assets/fit_classic.png" alt="Classic Fit">
+                            </div>
+                            <div class="fit-info">
+                                <h4>Classic Fit</h4>
+                                <span class="fit-width-tag">Snug</span>
+                                <p>Ayağı saran, destekli ve kompak tutuş</p>
+                            </div>
+                        </button>
+                        <button class="fit-style-card" data-value="relaxed">
+                            <div class="fit-img-wrap">
+                                <img src="assets/fit_relaxed.png" alt="Relaxed Fit">
+                            </div>
+                            <div class="fit-info">
+                                <h4>Relaxed Fit</h4>
+                                <span class="fit-width-tag green">Roomier</span>
+                                <p>Topuk desteği, parmak ucunda ferah alan</p>
+                            </div>
+                        </button>
+                        <button class="fit-style-card" data-value="wide">
+                            <div class="fit-img-wrap">
+                                <img src="assets/fit_wide.png" alt="Wide Fit">
+                            </div>
+                            <div class="fit-info">
+                                <h4>Wide Fit</h4>
+                                <span class="fit-width-tag orange">Wide</span>
+                                <p>Tüm ayak çevresinde daha geniş iç hacim</p>
+                            </div>
+                        </button>
+                        <button class="fit-style-card" data-value="extra_wide">
+                            <div class="fit-img-wrap">
+                                <img src="assets/fit_extra_wide.png" alt="Extra Wide Fit">
+                            </div>
+                            <div class="fit-info">
+                                <h4>Extra Wide Fit</h4>
+                                <span class="fit-width-tag red">Extra Wide</span>
+                                <p>Maksimum alan, geniş ayaklar için tüm gün konfor</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LOADING -->
+            <section class="step" id="step-loading" data-step="loading">
+                <div class="step-content centered loading-content">
+                    <div class="shoe-loader">
+                        <div class="shoe-bounce">👟</div>
+                    </div>
+                    <h2 class="title">Analiz Ediliyor...</h2>
+                    <p class="subtitle" id="loading-text">Ayak ölçüleriniz Skechers veritabanıyla eşleştiriliyor</p>
+                </div>
+            </section>
+
+            <!-- RESULT -->
+            <section class="step" id="step-result" data-step="result">
+                <div class="step-content centered result-content">
+                    <div class="result-badge">SKECHERS FIT FINDER</div>
+
+                    <div class="result-size-ring">
+                        <span class="result-size" id="final-size">42</span>
+                        <span class="result-size-label">EU</span>
+                    </div>
+
+                    <div class="result-sizes-row">
+                        <div class="alt-size"><span>US</span><strong id="size-us">9</strong></div>
+                        <div class="alt-size"><span>UK</span><strong id="size-uk">8</strong></div>
+                        <div class="alt-size"><span>CM</span><strong id="size-cm">27.0</strong></div>
+                    </div>
+
+                    <div class="result-fit-badge" id="result-fit-badge">
+                        <span>Önerilen Kalıp:</span>
+                        <strong id="result-fit-name">Relaxed Fit</strong>
+                    </div>
+
+                    <p class="result-justification" id="result-justification">
+                        Ayak uzunluğunuz ve normal genişlik profilinize göre, Skechers 42 numara Relaxed Fit modeli size en iyi uyumu sağlayacaktır.
+                    </p>
+
+                    <div class="result-tips" id="result-tips">
+                        <h4>💡 Fit İpuçları</h4>
+                        <ul>
+                            <li id="tip-1">Koşu ayakkabısında yarım numara büyük tercih edin</li>
+                            <li id="tip-2">Akşam saatlerinde denemenizi öneririz (ayak hafif şişer)</li>
+                        </ul>
+                    </div>
+
+                    <button class="primary-btn mt-4" onclick="window.location.reload()">Koleksiyonu Keşfet</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="widget-footer" id="widget-footer">
+            <button class="primary-btn disabled" id="next-btn">Devam Et</button>
+        </footer>
+
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
