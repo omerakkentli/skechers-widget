@@ -237,13 +237,24 @@ document.addEventListener('DOMContentLoaded', () => {
     function startScanAnimation() {
         showCameraPhase('scan');
         const container = scanCanvas.parentElement;
-        scanCanvas.width = container.clientWidth;
-        scanCanvas.height = container.clientHeight || 300;
-        const ctx = scanCanvas.getContext('2d');
+        const containerW = container.clientWidth;
 
         const img = new Image();
         img.onload = () => {
-            ctx.drawImage(img, 0, 0, scanCanvas.width, scanCanvas.height);
+            // Size canvas to match image aspect ratio, filling full width
+            const ratio = img.naturalHeight / img.naturalWidth;
+            const canvasW = containerW;
+            const canvasH = Math.round(canvasW * ratio);
+
+            scanCanvas.width = canvasW;
+            scanCanvas.height = canvasH;
+            // Also set CSS height so the container grows to fit
+            scanCanvas.style.width = '100%';
+            scanCanvas.style.height = canvasH + 'px';
+            container.style.minHeight = canvasH + 'px';
+
+            const ctx = scanCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvasW, canvasH);
             document.getElementById('scan-line').classList.add('active');
 
             const fl = state.footLengthMm;
