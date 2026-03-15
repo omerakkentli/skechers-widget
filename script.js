@@ -17,10 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const STEP_ORDER_CAMERA = ['step-1', 'step-2', 'step-camera', 'step-4', 'step-5'];
     const STEP_ORDER_MANUAL = ['step-1', 'step-2', 'step-manual', 'step-4', 'step-5'];
-
-    function getStepOrder() {
-        return state.method === 'camera' ? STEP_ORDER_CAMERA : STEP_ORDER_MANUAL;
-    }
+    function getStepOrder() { return state.method === 'camera' ? STEP_ORDER_CAMERA : STEP_ORDER_MANUAL; }
 
     // ========== DOM ==========
     const nextBtn = document.getElementById('next-btn');
@@ -36,10 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const activityCards = document.querySelectorAll('.activity-card');
     const fitCards = document.querySelectorAll('.fit-style-card');
 
-    // ========== INIT ==========
     updateProgress();
 
-    // ========== EVENTS: STEP 1 — GENDER ==========
+    // ========== GENDER ==========
     genderCards.forEach(c => c.addEventListener('click', () => {
         genderCards.forEach(x => x.classList.remove('selected'));
         c.classList.add('selected');
@@ -47,17 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
         enableNext();
     }));
 
-    // ========== EVENTS: STEP 2 — METHOD ==========
-    methodCamera.addEventListener('click', () => {
-        state.method = 'camera';
-        goToStep('step-camera');
-    });
-    methodManual.addEventListener('click', () => {
-        state.method = 'manual';
-        goToStep('step-manual');
-    });
+    // ========== METHOD ==========
+    methodCamera.addEventListener('click', () => { state.method = 'camera'; goToStep('step-camera'); });
+    methodManual.addEventListener('click', () => { state.method = 'manual'; goToStep('step-manual'); });
 
-    // ========== EVENTS: MANUAL FLOW ==========
+    // ========== MANUAL ==========
     brandSelect.addEventListener('change', () => { state.currentBrand = brandSelect.value; validateManual(); });
     sizeInput.addEventListener('input', () => { state.currentSize = parseFloat(sizeInput.value); validateManual(); });
     sizeInput.addEventListener('focus', () => { sizeInput.placeholder = ''; });
@@ -69,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         validateManual();
     }));
 
-    // ========== EVENTS: ACTIVITY ==========
+    // ========== ACTIVITY ==========
     activityCards.forEach(c => c.addEventListener('click', () => {
         activityCards.forEach(x => x.classList.remove('selected'));
         c.classList.add('selected');
@@ -77,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enableNext();
     }));
 
-    // ========== EVENTS: FIT STYLE ==========
+    // ========== FIT STYLE ==========
     fitCards.forEach(c => c.addEventListener('click', () => {
         fitCards.forEach(x => x.classList.remove('selected'));
         c.classList.add('selected');
@@ -85,18 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
         enableNext();
     }));
 
-    // ========== NAVIGATION ==========
+    // ========== NAV ==========
     nextBtn.addEventListener('click', () => {
         if (nextBtn.classList.contains('disabled')) return;
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
-        if (idx === order.length - 1) {
-            showLoading();
-        } else {
-            goToStep(order[idx + 1]);
-        }
+        if (idx === order.length - 1) showLoading();
+        else goToStep(order[idx + 1]);
     });
-
     backBtn.addEventListener('click', () => {
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
@@ -107,27 +93,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const current = document.getElementById(state.currentStep);
         const next = document.getElementById(stepId);
         if (!next) return;
-
         current.classList.remove('active');
         current.classList.add('exit-left');
         next.classList.remove('exit-left');
         next.classList.add('active');
-
         state.currentStep = stepId;
         validateCurrentStep();
         updateProgress();
         updateNav();
+        // Scroll to top
+        document.querySelector('.steps-container').scrollTop = 0;
     }
 
     function updateNav() {
         backBtn.classList.toggle('hidden', state.currentStep === 'step-1');
-
         const hideFooter = ['step-2', 'step-camera', 'step-loading', 'step-result'].includes(state.currentStep);
         footer.style.display = hideFooter ? 'none' : 'block';
-
         const order = getStepOrder();
         const idx = order.indexOf(state.currentStep);
-        nextBtn.textContent = idx === order.length - 1 ? 'Sonucu Göster' : 'Devam Et';
+        nextBtn.textContent = idx === order.length - 1 ? 'SONUCU GÖSTER' : 'DEVAM ET';
     }
 
     function updateProgress() {
@@ -154,9 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ================================================================
-    //  CAMERA FLOW — Simple: Open → Capture → Review/Retake → Scan
+    //  CAMERA + UPLOAD FLOW
     // ================================================================
     const startCameraBtn = document.getElementById('start-camera-btn');
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileInput = document.getElementById('file-input');
     const captureBtn = document.getElementById('capture-btn');
     const retakeBtn = document.getElementById('retake-btn');
     const confirmPhotoBtn = document.getElementById('confirm-photo-btn');
@@ -175,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.display = 'flex';
     }
 
-    // Phase 1 → Phase 2: Open camera
+    // Open camera
     startCameraBtn.addEventListener('click', async () => {
         try {
             stream = await navigator.mediaDevices.getUserMedia({
@@ -185,30 +171,41 @@ document.addEventListener('DOMContentLoaded', () => {
             await video.play();
             showCameraPhase('capture');
         } catch (err) {
-            console.warn('Camera not available, using simulated capture:', err);
-            simulateCapture();
+            // No camera — open file picker as fallback
+            fileInput.click();
         }
     });
 
-    // Phase 2 → Phase 3: Capture photo
+    // Upload from gallery
+    uploadBtn.addEventListener('click', () => { fileInput.click(); });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            state.capturedImage = ev.target.result;
+            reviewImage.src = state.capturedImage;
+            showCameraPhase('review');
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Capture photo from camera
     captureBtn.addEventListener('click', () => {
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth || 640;
         canvas.height = video.videoHeight || 480;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         state.capturedImage = canvas.toDataURL('image/jpeg', 0.85);
-
-        // Stop camera stream
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-
-        // Show review
         reviewImage.src = state.capturedImage;
         showCameraPhase('review');
     });
 
-    // Phase 3: Retake — go back to camera
+    // Retake
     retakeBtn.addEventListener('click', async () => {
+        fileInput.value = '';
         try {
             stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
@@ -221,109 +218,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Phase 3 → Phase 4: Confirm & start scan
+    // Confirm → scan
     confirmPhotoBtn.addEventListener('click', () => {
-        // Generate simulated measurements (in real app this would be ML-based)
         generateMeasurements();
         startScanAnimation();
     });
 
-    // Desktop fallback (no camera)
-    function simulateCapture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 480;
-        const ctx = canvas.getContext('2d');
-
-        // Dark background with foot placeholder
-        ctx.fillStyle = '#1a1f2e';
-        ctx.fillRect(0, 0, 640, 480);
-        // A4 paper area
-        ctx.fillStyle = '#232940';
-        ctx.strokeStyle = '#3D4560';
-        ctx.lineWidth = 2;
-        ctx.fillRect(140, 40, 360, 400);
-        ctx.strokeRect(140, 40, 360, 400);
-        // Foot emoji
-        ctx.font = '100px serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('🦶', 320, 300);
-        // Label
-        ctx.font = '13px Inter, sans-serif';
-        ctx.fillStyle = '#5A6478';
-        ctx.fillText('Simulated capture (desktop)', 320, 460);
-
-        state.capturedImage = canvas.toDataURL('image/jpeg');
-        reviewImage.src = state.capturedImage;
-        showCameraPhase('review');
-    }
-
     function generateMeasurements() {
-        // In a real implementation, this would use AR/ML to measure.
-        // We generate plausible values based on gender for demo purposes.
         if (state.gender === 'female') {
-            state.footLengthMm = 235 + Math.floor(Math.random() * 20); // 235–255mm
-            state.footWidthMm = Math.round(state.footLengthMm * 0.37);
+            state.footLengthMm = 235 + Math.floor(Math.random() * 20);
         } else {
-            state.footLengthMm = 258 + Math.floor(Math.random() * 25); // 258–283mm
-            state.footWidthMm = Math.round(state.footLengthMm * 0.39);
+            state.footLengthMm = 258 + Math.floor(Math.random() * 25);
         }
+        state.footWidthMm = Math.round(state.footLengthMm * (0.37 + Math.random() * 0.04));
     }
 
     // ========== SCAN ANIMATION ==========
     function startScanAnimation() {
         showCameraPhase('scan');
-
         const container = scanCanvas.parentElement;
         scanCanvas.width = container.clientWidth;
-        scanCanvas.height = container.clientHeight || 350;
+        scanCanvas.height = container.clientHeight || 300;
         const ctx = scanCanvas.getContext('2d');
 
-        // Draw captured image onto scan canvas
         const img = new Image();
         img.onload = () => {
             ctx.drawImage(img, 0, 0, scanCanvas.width, scanCanvas.height);
+            document.getElementById('scan-line').classList.add('active');
 
-            // Start scan line animation
-            const scanLine = document.getElementById('scan-line');
-            scanLine.classList.add('active');
+            const fl = state.footLengthMm;
+            const bw = state.footWidthMm;
+            const aw = Math.round(bw * 0.86);
+            const hw = Math.round(bw * 0.63);
+            const tr = Math.round(fl * 1.03);
 
-            // Calculate measurement values
-            const footLen = state.footLengthMm;
-            const ballW = state.footWidthMm;
-            const archW = Math.round(ballW * 0.86);
-            const heelW = Math.round(ballW * 0.63);
-            const toeReach = Math.round(footLen * 1.03);
+            document.getElementById('m-length-val').textContent = `${fl} mm`;
+            document.getElementById('m-ball-val').textContent = `${bw} mm`;
+            document.getElementById('m-arch-val').textContent = `${aw} mm`;
+            document.getElementById('m-heel-val').textContent = `${hw} mm`;
+            document.getElementById('m-toe-val').textContent = `${tr} mm`;
 
-            document.getElementById('m-length-val').textContent = `${footLen} mm`;
-            document.getElementById('m-ball-val').textContent = `${ballW} mm`;
-            document.getElementById('m-arch-val').textContent = `${archW} mm`;
-            document.getElementById('m-heel-val').textContent = `${heelW} mm`;
-            document.getElementById('m-toe-val').textContent = `${toeReach} mm`;
-
-            // Animate measurement labels appearing one by one
-            const labels = document.querySelectorAll('.measure-label');
-            labels.forEach((label, i) => {
-                setTimeout(() => label.classList.add('visible'), 800 + i * 500);
+            document.querySelectorAll('.measure-label').forEach((l, i) => {
+                setTimeout(() => l.classList.add('visible'), 800 + i * 500);
             });
 
-            // Update status text progressively
-            const statusEl = document.getElementById('scan-status');
-            setTimeout(() => { statusEl.textContent = 'Taban genişliği hesaplanıyor...'; }, 1000);
-            setTimeout(() => { statusEl.textContent = 'Kemer ve topuk analiz ediliyor...'; }, 2000);
-            setTimeout(() => { statusEl.textContent = 'Parmak erişimi ölçülüyor...'; }, 3000);
-            setTimeout(() => { statusEl.textContent = 'Analiz tamamlandı ✓'; statusEl.style.color = '#34D399'; }, 4000);
-
-            // After animation completes, move to activity selection
-            setTimeout(() => {
-                goToStep('step-4');
-                footer.style.display = 'block';
-            }, 5000);
+            const s = document.getElementById('scan-status');
+            setTimeout(() => { s.textContent = 'Taban genişliği hesaplanıyor...'; }, 1000);
+            setTimeout(() => { s.textContent = 'Kemer ve topuk analiz ediliyor...'; }, 2000);
+            setTimeout(() => { s.textContent = 'Parmak erişimi ölçülüyor...'; }, 3000);
+            setTimeout(() => { s.textContent = 'Analiz tamamlandı'; s.style.color = '#059669'; }, 4000);
+            setTimeout(() => { goToStep('step-4'); footer.style.display = 'block'; }, 5000);
         };
         img.src = state.capturedImage;
     }
 
-    // ========== LOADING & RESULT ==========
+    // ========== LOADING ==========
     function showLoading() {
         goToStep('step-loading');
         setTimeout(() => { document.getElementById('loading-text').textContent = 'Skechers veritabanı taranıyor...'; }, 800);
@@ -331,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => computeResult(), 2400);
     }
 
-    // ========== SIZING TABLE ==========
+    // ========== SIZE TABLE ==========
     const SIZE_TABLE = [
         { eu: 35, mm: 220, usM: 3.5, usW: 5.5, uk: 2.5 },
         { eu: 36, mm: 225, usM: 4, usW: 6, uk: 3.5 },
@@ -349,35 +298,22 @@ document.addEventListener('DOMContentLoaded', () => {
         { eu: 47, mm: 307, usM: 13, usW: null, uk: 12.5 },
     ];
 
-    const BRAND_OFFSET = {
-        nike: 0, adidas: 0, skechers: 0, new_balance: -0.5,
-        puma: 0, converse: 0.5, vans: 0, other: 0
-    };
+    const BRAND_OFFSET = { nike: 0, adidas: 0, skechers: 0, new_balance: -0.5, puma: 0, converse: 0.5, vans: 0, other: 0 };
 
-    function findSizeFromMm(mm) {
-        return SIZE_TABLE.reduce((best, e) => Math.abs(e.mm - mm) < Math.abs(best.mm - mm) ? e : best);
-    }
-
-    function findSizeFromEu(eu) {
-        return SIZE_TABLE.reduce((best, e) => Math.abs(e.eu - eu) < Math.abs(best.eu - eu) ? e : best);
-    }
+    function findSizeFromMm(mm) { return SIZE_TABLE.reduce((b, e) => Math.abs(e.mm - mm) < Math.abs(b.mm - mm) ? e : b); }
+    function findSizeFromEu(eu) { return SIZE_TABLE.reduce((b, e) => Math.abs(e.eu - eu) < Math.abs(b.eu - eu) ? e : b); }
 
     function computeResult() {
         let sizeEntry;
-
         if (state.method === 'camera' && state.footLengthMm) {
-            // Camera: foot length + comfort margin
             sizeEntry = findSizeFromMm(state.footLengthMm + 7);
         } else {
-            // Manual: current size adjusted for brand + fit
-            let adjustedEu = state.currentSize;
-            adjustedEu += (BRAND_OFFSET[state.currentBrand] || 0);
-            if (state.fitIssue === 'tight') adjustedEu += 0.5;
-            if (state.fitIssue === 'loose') adjustedEu -= 0.5;
-            sizeEntry = findSizeFromEu(adjustedEu);
+            let adj = state.currentSize + (BRAND_OFFSET[state.currentBrand] || 0);
+            if (state.fitIssue === 'tight') adj += 0.5;
+            if (state.fitIssue === 'loose') adj -= 0.5;
+            sizeEntry = findSizeFromEu(adj);
         }
 
-        // Activity tip
         const activityTips = {
             running: 'Koşu ayakkabılarında yarım numara büyük tercih etmenizi öneririz.',
             walking: 'Yürüyüş için tam bedeniniz idealdir; comfort teknolojili modellere bakın.',
@@ -385,7 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
             casual: 'Günlük kullanımda biraz daha ferah bir kalıp tüm gün konfor sağlar.'
         };
 
-        // Fit style
         const fitNames = { classic: 'Classic Fit', relaxed: 'Relaxed Fit', wide: 'Wide Fit', extra_wide: 'Extra Wide Fit' };
         const widthInfo = {
             classic: { men: 'D Width', women: 'B Width' },
@@ -396,23 +331,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const fitName = fitNames[state.fitStyle] || 'Relaxed Fit';
         const wInfo = widthInfo[state.fitStyle] || widthInfo.relaxed;
-        const genderWidth = state.gender === 'female' ? wInfo.women : wInfo.men;
+        const gw = state.gender === 'female' ? wInfo.women : wInfo.men;
 
-        // Populate result
         document.getElementById('final-size').textContent = sizeEntry.eu;
         document.getElementById('size-us').textContent = state.gender === 'female' ? (sizeEntry.usW || '—') : sizeEntry.usM;
         document.getElementById('size-uk').textContent = sizeEntry.uk;
         document.getElementById('size-cm').textContent = (sizeEntry.mm / 10).toFixed(1);
-        document.getElementById('result-fit-name').textContent = `${fitName} (${genderWidth})`;
+        document.getElementById('result-fit-name').textContent = `${fitName} (${gw})`;
 
-        const method = state.method === 'camera' ? 'kamera ölçümünüz' : 'mevcut ayakkabı bilgileriniz';
+        const src = state.method === 'camera' ? 'Kamera ölçümünüz' : 'Mevcut ayakkabı bilgileriniz';
         document.getElementById('result-justification').textContent =
-            `${method.charAt(0).toUpperCase() + method.slice(1)} ve ${fitName} tercihiniz göz önüne alındığında, Skechers ${sizeEntry.eu} numara size en iyi uyumu sağlayacaktır.`;
+            `${src} ve ${fitName} tercihiniz göz önüne alındığında, Skechers ${sizeEntry.eu} numara size en iyi uyumu sağlayacaktır.`;
 
         document.getElementById('tip-1').textContent = activityTips[state.activity] || activityTips.casual;
         document.getElementById('tip-2').textContent = 'Akşam saatlerinde denemenizi öneririz — ayak gün boyunca hafif şişer.';
 
         goToStep('step-result');
     }
-
 });
